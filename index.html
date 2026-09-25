@@ -237,8 +237,7 @@ function undoLast(){
   u.record.cats.forEach(c=>state.cat[c]=Math.max(0,state.cat[c]-u.record.xp));
   skillForTask(t).forEach(([k,n])=>{const sk=skillKey(k,n);state.skillXP[sk]=Math.max(0,(state.skillXP[sk]||0)-u.record.xp)});
   state.total=Math.max(0,state.total-1);save();
-  document.getElementById("undoToast").classList.remove("show");window.onerror=function(){const a=document.getElementById("app");if(a)a.innerHTML='<div class="error-screen"><div class="empty-hero">🛠️</div><h2>Life Game recovered</h2><p>Your saved progress is safe on this device.</p><button class="primary" onclick="location.reload()">Reload</button></div>'};
-render("today");toast("Task undone");window.undoRecord=null;
+  document.getElementById("undoToast").classList.remove("show");render("today");toast("Task undone");window.undoRecord=null;
  }
 }
 function complete(id){
@@ -304,4 +303,5 @@ function historyPage(){
 }
 function progressTabFromProfile(tab){if(tab==="achievements")achievementPageFull();else trophyPageFull()}
 document.body.insertAdjacentHTML("beforeend",'<div id="undoToast" class="undo-toast"><span>✓ Task completed</span><button onclick="undoLast()">Undo</button></div><div id="fx"></div>');
+window.onerror=function(){const a=document.getElementById("app");if(a)a.innerHTML='<div class="error-screen"><div class="empty-hero">🛠️</div><h2>Life Game recovered</h2><p>Your saved progress is safe on this device.</p><button class="primary" onclick="location.reload()">Reload</button></div>'};
 render("today");
