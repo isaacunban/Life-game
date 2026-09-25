@@ -225,7 +225,7 @@ function complete(id){
  let levelRewards=0;t.cats.forEach(c=>{let now=info(state.cat[c]).l;for(let l=old[c]+1;l<=now;l++){state.coins+=l;levelRewards+=l;}});
  state.history.push({id:t.id,name:t.name,xp:r[0],cats:t.cats,skill:skills.map(x=>skillKey(x[0],x[1])),date:new Date().toISOString()});
  let ld=state.lastDay;if(ld!==key()){state.streak=ld&&new Date(key())-new Date(ld)===86400000?state.streak+1:1;state.bestStreak=Math.max(state.bestStreak,state.streak);state.lastDay=key()}
- save();sound();const e=document.getElementById("task-"+id);if(e)e.classList.add("hide");setTimeout(()=>render("today"),330);
+ claimQuestRewards();claimMissionRewards();save();sound();const e=document.getElementById("task-"+id);if(e)e.classList.add("hide");setTimeout(()=>render("today"),330);
  let ups=t.cats.map(c=>({c,old:old[c],now:info(state.cat[c]).l})).filter(x=>x.now>x.old);if(ups.length)setTimeout(()=>levelPop(ups),400);
  toast("+"+r[0]+" XP  +"+r[1]+" 🪙"+(levelRewards?" · Level bonus +"+levelRewards+" 🪙":""));
 }
