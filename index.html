@@ -304,5 +304,262 @@ function historyPage(){
 function progressTabFromProfile(tab){if(tab==="achievements")achievementPageFull();else trophyPageFull()}
 document.body.insertAdjacentHTML("beforeend",'<div id="undoToast" class="undo-toast"><span>✓ Task completed</span><button onclick="undoLast()">Undo</button></div><div id="fx"></div>');
 window.onerror=function(){const a=document.getElementById("app");if(a)a.innerHTML='<div class="error-screen"><div class="empty-hero">🛠️</div><h2>Life Game recovered</h2><p>Your saved progress is safe on this device.</p><button class="primary" onclick="location.reload()">Reload</button></div>'};
+
+<style>
+/* v1.2 — cleaner game UI */
+.today-top{padding:24px 18px 8px}
+.today-date{font-size:34px;letter-spacing:-.045em}
+.today-progress{padding:13px 15px;margin-top:14px;border-radius:18px;background:linear-gradient(145deg,#1b2a47,#121b2d);border:1px solid #344867}
+.today-task-list{padding:5px 9px;border-radius:18px;background:rgba(16,24,39,.78);box-shadow:0 12px 30px #0003}
+.rarity-section{margin:13px 16px 18px}
+.rarity-head{padding:2px 4px 8px}
+.rarity-title{font-size:11px;letter-spacing:.16em}
+.rarity-line{height:2px;width:28px;opacity:.8}
+.game-task{display:flex;align-items:center;gap:11px;padding:11px 5px;border-bottom:1px solid #293550;min-height:64px;cursor:pointer;transition:transform .18s,opacity .28s,max-height .35s,padding .35s,background .18s}
+.game-task:last-child{border-bottom:0}
+.game-task:active{transform:scale(.985);background:#1b2942}
+.game-task.hide{opacity:0;transform:translateX(110%);max-height:0;min-height:0;padding-top:0;padding-bottom:0;border:0;overflow:hidden}
+.game-task-icon{width:39px;height:39px;flex:0 0 39px;border-radius:13px;display:grid;place-items:center;font-size:13px;font-weight:950;color:var(--rarity);background:color-mix(in srgb,var(--rarity) 12%,#101827);border:1.5px solid color-mix(in srgb,var(--rarity) 62%,#33415d)}
+.game-task-main{min-width:0;flex:1}
+.game-task-name{font-weight:850;font-size:15px;line-height:1.18;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-task-meta{display:flex;align-items:center;gap:6px;margin-top:5px;min-width:0}
+.game-task-cats{display:flex;gap:1px}
+.game-task-cats .tag{font-size:13px}
+.game-task-xp{font-size:10px;font-weight:900;color:color-mix(in srgb,var(--rarity) 82%,white);background:color-mix(in srgb,var(--rarity) 13%,#111a2b);padding:4px 7px;border-radius:8px}
+.game-task-check{width:30px;height:30px;border-radius:10px;border:1.5px solid #465775;background:#121b2d;display:grid;place-items:center;color:#8492aa;font-size:15px;flex:0 0 30px}
+.game-task-check::after{content:""}
+.empty-today{margin:25px 16px;padding:28px 18px;text-align:center;border:1px solid #334867;border-radius:22px;background:linear-gradient(145deg,#172641,#111a2c)}
+.empty-today .empty-hero{font-size:54px}
+.schedule-hero{margin:8px 16px 15px;padding:15px 16px;border:1px solid #334766;border-radius:19px;background:linear-gradient(145deg,#192844,#121b2d);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.schedule-hero b{font-size:16px}
+.library-section{margin:0 16px 90px}
+.library-cat{background:#151e31;border:1px solid #2d3b56;border-radius:18px;margin:9px 0;overflow:hidden}
+.library-cat.open{border-color:#435779;box-shadow:0 10px 28px #0003}
+.library-cat-head{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;cursor:pointer}
+.library-cat-left{display:flex;align-items:center;gap:11px}
+.library-cat-icon{font-size:24px}
+.library-cat-name{font-weight:900}
+.library-cat-count{font-size:11px;color:#91a0bb;margin-top:2px}
+.library-cat-arrow{color:#8e9db6;font-size:18px;transition:.2s}
+.library-cat.open .library-cat-arrow{transform:rotate(90deg)}
+.library-cat-body{display:none;border-top:1px solid #293550;padding:5px 14px 8px}
+.library-cat.open .library-cat-body{display:block}
+.library-rarity-label{font-size:10px;font-weight:950;letter-spacing:.14em;text-transform:uppercase;padding:10px 1px 5px;color:var(--rarity)}
+.library-task{display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid #252f45}
+.library-task:first-of-type{border-top:0}
+.library-task .task-badge{width:34px;height:34px;flex-basis:34px;border-radius:11px;font-size:12px}
+.library-task-info{min-width:0;flex:1}
+.library-task-name{font-weight:760}
+.library-task-meta{font-size:10px;color:#91a0bb;margin-top:3px;display:flex;gap:5px;align-items:center}
+.plan-card{background:linear-gradient(145deg,#17243d,#121b2d);border-color:#344765}
+.plan-head{padding:15px 16px}
+.plan-title{font-weight:900}
+.plan-preview{display:flex;gap:6px;flex-wrap:wrap;padding:0 15px 15px}
+.plan-preview span{background:#202e48;border:1px solid #2e405f;border-radius:9px;padding:6px 8px;font-size:11px;color:#c2cee2}
+.plan-actions{display:flex;gap:6px}
+.icon-btn{width:34px;height:34px;border-radius:10px;border:1px solid #425574;background:#1b2942;color:#fff}
+.icon-btn.danger{color:#ff9aa6}
+.schedule-editor{gap:10px}
+.selected-box{background:linear-gradient(145deg,#101a2b,#0e1726);border-color:#3d5072}
+.selected-item{padding:9px 0}
+.selected-item .selected-task-chip{display:inline-flex;align-items:center;gap:6px;background:#1e3354;border:1px solid #45638f;border-radius:10px;padding:7px 9px;font-size:12px}
+.selected-item button{padding:6px 8px!important;font-size:11px}
+.builder-cat{background:#172238;border-color:#2e3e5d}
+.builder-cat-head{padding:13px 14px}
+.builder-cat-body{padding:0 13px 8px}
+.pick-row{padding:9px 0}
+.pick-row.hidden{display:none}
+.pick-row .task-badge{box-shadow:none}
+.pick-row button{width:34px;height:34px}
+.pick-row button.remove{background:#173b31}
+.search-box input{border-radius:13px}
+.day-selector button.on{box-shadow:0 0 0 2px #5b8cff33}
+.achievement-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:0 16px 24px}
+.achievement-tile{min-width:0;border:1px solid #2b3852;background:#111927;border-radius:17px;padding:11px 9px 12px;text-align:center;position:relative;overflow:hidden}
+.achievement-tile.unlocked{background:linear-gradient(145deg,#1a2940,#131d2e);border-color:#405675}
+.achievement-art{width:68px;height:68px;margin:0 auto 9px;border-radius:18px;display:grid;place-items:center;font-size:34px;position:relative;background:radial-gradient(circle at 35% 25%,#3a4961,#171f30);border:1px solid #53627b}
+.achievement-tile.locked .achievement-art{filter:grayscale(1);opacity:.42}
+.achievement-lock{position:absolute;right:3px;bottom:3px;width:24px;height:24px;border-radius:8px;background:#0a0f18e8;border:1px solid #59677f;display:grid;place-items:center;font-size:12px}
+.achievement-tile.unlocked .achievement-lock{display:none}
+.achievement-name{font-size:12px;font-weight:900;line-height:1.15}
+.achievement-desc{font-size:10px;color:#91a0bb;line-height:1.25;margin-top:4px;min-height:27px}
+.achievement-mini-bar{height:5px;background:#29344a;border-radius:99px;overflow:hidden;margin-top:8px}
+.achievement-mini-bar i{display:block;height:100%;background:linear-gradient(90deg,#5b8cff,#a979ff);border-radius:99px}
+.achievement-status{font-size:9px;color:#8190aa;margin-top:4px}
+.achievement-tile.unlocked .achievement-status{color:#6fe0b0}
+.level-card{background:#151f32;border:1px solid #415879;border-radius:17px;padding:13px;display:flex;gap:11px;align-items:center;margin:8px 0}
+.level-icon{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;background:#22314d;font-size:23px;flex:none}
+.level-info{flex:1}
+.level-big{font-size:19px;font-weight:950;letter-spacing:.03em}
+.level-track{height:9px;margin-top:7px}
+.level-track i{width:0!important}
+.level-detail{font-size:10px;color:#91a0bb;margin-top:5px}
+@media(max-width:390px){.achievement-grid{grid-template-columns:repeat(2,1fr)}.achievement-art{width:62px;height:62px}}
+</style>
+
+<script>
+/* v1.2 overrides: phone-local day, category-first library, clean achievements */
+function phoneDayIndex(){return (new Date().getDay()+6)%7}
+function barcelonaDayIndex(){return phoneDayIndex()}
+function todayTasks(){
+ const di=phoneDayIndex();
+ const ids=new Set(state.tasks.filter(t=>t.days.includes(di)).map(t=>t.id));
+ (state.plans||[]).filter(p=>p.days.includes(di)).flatMap(p=>p.tasks).forEach(id=>ids.add(id));
+ return state.tasks.filter(t=>ids.has(t.id));
+}
+function taskHTML(t){
+ const r=diffInfo(t.diff),rar=t.diff||"common",letter=RLETTER[rar]||"C";
+ return '<div id="task-'+t.id+'" class="game-task rarity-'+rar+'" onclick="complete(\''+t.id+'\')">'+
+ '<div class="game-task-icon">'+letter+'</div>'+
+ '<div class="game-task-main"><div class="game-task-name">'+esc(t.name)+'</div><div class="game-task-meta"><span class="game-task-cats">'+tags(t.cats)+'</span><span class="game-task-xp">+'+r[0]+' XP</span></div></div>'+
+ '<div class="game-task-check">›</div></div>';
+}
+function todayHome(){
+ const all=todayTasks(),open=all.filter(t=>!done(t)),completed=all.length-open.length,pct=all.length?completed/all.length*100:0;
+ let html='<div class="today-top"><div class="eyebrow">TODAY</div><div class="today-date">'+dateLabel()+'</div><div class="today-sub">'+new Intl.DateTimeFormat("en-US",{weekday:"long"}).format(new Date())+'</div><div class="today-progress"><div class="row"><div><b>'+completed+' of '+all.length+' complete</b><div class="meta" style="margin-top:2px">'+(all.length-completed)+' tasks remaining</div></div><span class="pill">🪙 '+state.coins+'</span></div><div class="progress-track"><i style="width:'+pct+'%"></i></div></div></div>';
+ if(!open.length){
+  html+='<div class="empty-today"><div class="empty-hero">✨</div><h2>Day complete</h2><p class="meta">Everything scheduled for today is done.</p><button class="primary" onclick="openPlanBuilder()">Add something extra</button></div>';
+ }else{
+  RANKS.forEach(r=>{const ts=open.filter(t=>t.diff===r);if(!ts.length)return;html+='<section class="rarity-section rarity-'+r+'"><div class="rarity-head"><div><span class="rarity-title">'+D[r][2]+'</span><div class="rarity-line"></div></div><span class="rarity-count">'+ts.length+'</span></div><div class="today-task-list">'+ts.map(taskHTML).join("")+'</div></section>'});
+ }
+ html+='<button class="fab" onclick="openModal()">＋</button>'+nav("today");
+ document.getElementById("app").innerHTML=html;
+}
+function toggleLibraryCat(k){
+ const el=document.getElementById("lib-"+k);if(!el)return;
+ document.querySelectorAll(".library-cat.open").forEach(x=>{if(x!==el)x.classList.remove("open")});
+ el.classList.toggle("open");
+}
+function scheduleHome(){
+ const plans=state.plans||[];
+ let html='<div class="top"><div class="eyebrow">YOUR ROUTINE</div><h1>📅 Schedule</h1><div class="sub">Build your weekly routines once. Today follows them automatically.</div></div>';
+ html+='<div class="schedule-hero"><div><b>Weekly planner</b><div class="meta">Uses your phone’s local time · edit anytime</div></div><button class="primary" onclick="openPlanBuilder()">＋ New</button></div>';
+ if(plans.length){
+  plans.forEach(p=>{
+   const names=p.tasks.map(id=>state.tasks.find(t=>t.id===id)?.name).filter(Boolean);
+   html+='<div class="plan-card"><div class="plan-head"><div><div class="plan-title">📋 '+esc(p.name)+'</div><div class="meta">'+names.length+' task'+(names.length===1?"":"s")+' · repeats weekly</div></div><div class="plan-actions"><button class="icon-btn" aria-label="Edit" onclick="openPlanBuilder(\''+p.id+'\')">✎</button><button class="icon-btn danger" aria-label="Delete" onclick="deletePlan(\''+p.id+'\')">×</button></div></div><div class="plan-days">'+p.days.map(i=>'<span class="day-chip">'+DAYS[i]+'</span>').join("")+'</div><div class="plan-preview">'+names.slice(0,6).map(n=>'<span>'+esc(n)+'</span>').join("")+(names.length>6?'<span class="meta">+'+(names.length-6)+' more</span>':"")+'</div></div>';
+  });
+ }else{
+  html+='<div class="empty-state card"><div class="empty-icon">🗓️</div><b>No weekly routines yet</b><p>Create one and it will feed the Today screen automatically.</p><button class="primary" onclick="openPlanBuilder()">Create routine</button></div>';
+ }
+ html+='<div class="section"><h2>Task library</h2><span class="pill">'+state.tasks.length+' tasks</span></div><div class="library-section">';
+ Object.entries(C).forEach(([k,v],idx)=>{
+   const catTasks=state.tasks.filter(t=>t.cats.includes(k));
+   const groups=RANKS.map(r=>({r,t:catTasks.filter(t=>t.diff===r).sort((a,b)=>a.name.localeCompare(b.name))})).filter(x=>x.t.length);
+   html+='<div id="lib-'+k+'" class="library-cat '+(idx===0?"":"")+'"><div class="library-cat-head" onclick="toggleLibraryCat(\''+k+'\')"><div class="library-cat-left"><span class="library-cat-icon">'+v[0]+'</span><div><div class="library-cat-name">'+v[1]+'</div><div class="library-cat-count">'+catTasks.length+' task'+(catTasks.length===1?"":"s")+'</div></div></div><span class="library-cat-arrow">›</span></div><div class="library-cat-body">';
+   groups.forEach(g=>{html+='<div class="library-rarity-label rarity-'+g.r+'">'+D[g.r][2]+' · '+g.t.length+'</div>';g.t.forEach(t=>{const r=diffInfo(t.diff);html+='<div class="library-task"><div class="task-badge rarity-'+g.r+'">'+RLETTER[g.r]+'</div><div class="library-task-info"><div class="library-task-name">'+esc(t.name)+'</div><div class="library-task-meta"><span>'+tags(t.cats)+'</span><span>+'+r[0]+' XP</span><span>+'+r[1]+' 🪙</span></div></div></div>'})});
+   html+='</div></div>';
+ });
+ html+='</div><button class="fab" onclick="openPlanBuilder()">＋</button>'+nav("schedule");
+ document.getElementById("app").innerHTML=html;
+}
+function renderPlanBuilder(){
+ const selected=window.planSelected,days=window.planDays;
+ const q=(document.getElementById("taskSearch")?.value||"").toLowerCase();
+ const cats=Object.entries(C);
+ let html="";
+ cats.forEach(([k,v],idx)=>{
+  const ts=state.tasks.filter(t=>t.cats.includes(k)).sort((a,b)=>RANKS.indexOf(a.diff)-RANKS.indexOf(b.diff)||a.name.localeCompare(b.name));
+  if(!ts.length)return;
+  const visible=ts.filter(t=>!selected.has(t.id));
+  html+='<div class="builder-cat '+(window.planOpenCats?.has(k)?"open":"")+'" id="bc-'+k+'"><div class="builder-cat-head" onclick="togglePlanCat(\''+k+'\')"><span><b>'+v[0]+' '+v[1]+'</b><span class="meta" style="margin-left:6px">'+visible.length+' available</span></span><span class="schedule-arrow">›</span></div><div class="builder-cat-body">';
+  RANKS.forEach(r=>{
+   const rt=visible.filter(t=>t.diff===r&&(!q||t.name.toLowerCase().includes(q)));
+   if(!rt.length)return;
+   html+='<div class="library-rarity-label rarity-'+r+'">'+D[r][2]+' · '+rt.length+'</div>';
+   rt.forEach(t=>{
+    const reward=diffInfo(t.diff);
+    html+='<div class="pick-row" data-name="'+esc(t.name.toLowerCase())+'"><div class="task-badge rarity-'+r+'">'+RLETTER[r]+'</div><div class="pick-info"><b>'+esc(t.name)+'</b><div class="task-sub"><span class="task-tags">'+tags(t.cats)+'</span><span class="rarity-label">'+D[r][2]+'</span><span class="reward">+'+reward[0]+' XP</span></div></div><button onclick="togglePlanTask(\''+t.id+'\')">+</button></div>';
+   });
+  });
+  html+='</div></div>';
+ });
+ document.getElementById("planLibrary").innerHTML=html||'<div class="empty-state">No tasks match your search.</div>';
+ const list=document.getElementById("selectedList");
+ list.innerHTML=selected.size?[...selected].map(id=>{const t=state.tasks.find(x=>x.id===id);return t?'<div class="selected-item"><span class="selected-task-chip">'+tags(t.cats)+' '+esc(t.name)+'</span><button class="secondary" onclick="togglePlanTask(\''+id+'\')">Remove</button></div>':""}).join(""):'<div class="selected-empty">Your selected tasks will appear here.</div>';
+ document.getElementById("selectedCount").textContent=selected.size;
+}
+function togglePlanCat(k){
+ window.planOpenCats=window.planOpenCats||new Set();
+ window.planOpenCats.has(k)?window.planOpenCats.delete(k):window.planOpenCats.add(k);
+ renderPlanBuilder();
+ const input=document.getElementById("taskSearch");if(input)input.focus();
+}
+function togglePlanTask(id){
+ window.planSelected.has(id)?window.planSelected.delete(id):window.planSelected.add(id);
+ renderPlanBuilder();
+}
+function openPlanBuilder(editId=null){
+ const old=editId?state.plans.find(p=>p.id===editId):null;
+ const selected=new Set(old?old.tasks:[]);
+ const days=new Set(old?old.days:[]);
+ window.planOpenCats=new Set(old&&old.tasks.length?state.tasks.filter(t=>old.tasks.includes(t.id)).flatMap(t=>t.cats).slice(0,1):["mind"]);
+ const box=document.createElement("div");box.id="planModal";box.className="modal show";
+ box.innerHTML='<div class="sheet"><div class="row"><div><div class="eyebrow">'+(old?"EDIT ROUTINE":"NEW ROUTINE")+'</div><h2 style="margin:3px 0">'+(old?"Edit schedule":"Build your week")+'</h2><div class="sub">'+(old?"Change tasks or days whenever you want.":"Pick the tasks and days this routine repeats.")+'</div></div><button class="secondary" onclick="document.getElementById(\'planModal\').remove()">Close</button></div><div class="schedule-editor"><label>Schedule name</label><input id="planName" value="'+esc(old?old.name:"")+'" placeholder="e.g. Wednesday Study Day"><label>Days</label><div class="day-selector">'+DAYS.map((d,i)=>'<button id="pd-'+i+'" class="'+(days.has(i)?"on":"")+'" onclick="togglePlanDay('+i+')">'+d+'</button>').join("")+'</div><div class="selected-box"><div class="row"><div><b>Selected tasks</b><div class="meta">These are the tasks in this routine.</div></div><span class="pill" id="selectedCount">0</span></div><div id="selectedList"></div></div><label>Choose tasks</label><div class="search-box"><input id="taskSearch" oninput="renderPlanBuilder()" placeholder="🔍 Search by task name..."></div><div class="library-list" id="planLibrary"></div><div class="editor-actions"><button class="secondary" onclick="document.getElementById(\'planModal\').remove()">Cancel</button><button class="primary" onclick="savePlan(\''+(old?old.id:"")+'\')">✓ Save routine</button></div></div></div>';
+ document.body.appendChild(box);window.planSelected=selected;window.planDays=days;window.planEditId=editId;renderPlanBuilder();
+}
+function achievementCard(a,locked){
+ const p=achievementProgress(a);
+ return '<div class="achievement-tile '+(locked?"locked":"unlocked")+'"><div class="achievement-art">'+a[0]+'<span class="achievement-lock">🔒</span></div><div class="achievement-name">'+esc(a[1])+'</div><div class="achievement-desc">'+esc(a[2])+'</div>'+(p?'<div class="achievement-mini-bar"><i style="width:'+p.p+'%"></i></div><div class="achievement-status">'+p.text+'</div>':'<div class="achievement-status">'+(locked?"Locked":"Unlocked")+'</div>')+'</div>';
+}
+function achievementPage(){
+ const unlocked=ach.filter(a=>a[3](state)).length;
+ return '<div class="filter-row"><span class="filter active">All '+ach.length+'</span><span class="filter">Unlocked '+unlocked+'</span><span class="filter">Locked '+(ach.length-unlocked)+'</span></div><div class="section"><div><h2>🏅 Achievements</h2><div class="meta">Unlock them by playing. Locked icons stay hidden in the shadows.</div></div></div><div class="achievement-grid">'+ach.map(a=>achievementCard(a,!a[3](state))).join("")+'</div>';
+}
+function levelPop(ups){
+ sound("level");burst("level");
+ const grouped={};
+ ups.forEach(x=>{(grouped[x.c]||(grouped[x.c]=[])).push(x)});
+ const rows=Object.entries(grouped).map(([c,items])=>{
+  const v=C[c],oldXP=items[0].before,newXP=items[items.length-1].after,oldI=info(oldXP),newI=info(newXP);
+  const oldPct=(newI.l===oldI.l)?oldI.cur/(oldI.next-oldI.base)*100:100;
+  const targetPct=newI.cur/(newI.next-newI.base)*100;
+  return '<div class="level-card"><div class="level-icon">'+v[0]+'</div><div class="level-info"><b>'+v[1]+'</b><div class="level-big">LEVEL '+oldI.l+' → '+newI.l+'</div><div class="level-track"><i data-from="'+Math.max(0,oldPct)+'" data-to="'+targetPct+'"></i></div><div class="level-detail">'+newI.cur+' / '+(newI.next-newI.base)+' XP · +'+items.reduce((n,x)=>n+x.reward,0)+' 🪙 level rewards</div></div></div>';
+ }).join("");
+ document.getElementById("pop").innerHTML='<div class="celebrate-icon">✦</div><div class="eyebrow">CHARACTER PROGRESS</div><h2>LEVEL UP!</h2><p class="meta">You just pushed your character forward.</p>'+rows+'<button class="primary big-button" onclick="closePop();render(\'today\')">Continue</button>';
+ document.getElementById("overlay").classList.add("show");
+ requestAnimationFrame(()=>document.querySelectorAll(".level-track i").forEach((e,i)=>{const from=e.dataset.from,to=e.dataset.to;e.style.width=from+"%";setTimeout(()=>e.style.width=to+"%",180+i*160)}));
+}
+function complete(id){
+ const t=state.tasks.find(x=>x.id===id);if(!t||done(t))return;
+ const r=diffInfo(t.diff),beforeCat={};t.cats.forEach(c=>beforeCat[c]=Number(state.cat[c])||0);
+ const snapshot={streak:state.streak,bestStreak:state.bestStreak,lastDay:state.lastDay,questClaimed:{...state.questClaimed},missionClaimed:{...state.missionClaimed},xp:state.xp,coins:state.coins};
+ const rec={id:t.id,name:t.name,xp:r[0],coins:r[1],cats:[...t.cats],date:new Date().toISOString(),levelCoins:0,levelUps:[],beforeCat:{...beforeCat}};
+ state.completions[key()+"|"+t.id]=true;state.xp+=r[0];state.coins+=r[1];state.total++;state.history.push(rec);
+ t.cats.forEach(c=>{
+  const oldL=level(beforeCat[c]);state.cat[c]=beforeCat[c]+r[0];const newL=level(state.cat[c]);
+  if(newL>oldL)for(let lv=oldL+1;lv<=newL;lv++){state.coins+=lv;rec.levelCoins+=lv;rec.levelUps.push({c,level:lv,before:xpFor(lv-1),after:state.cat[c],reward:lv})}
+ });
+ skillForTask(t).forEach(([k,n])=>{const sk=skillKey(k,n);state.skillXP[sk]=(state.skillXP[sk]||0)+r[0]});
+ const d=key();if(state.lastDay!==d){state.streak=state.lastDay===yesterdayKey()?state.streak+1:1;state.bestStreak=Math.max(state.bestStreak,state.streak);state.lastDay=d}
+ claimQuestRewards();claimMissionRewards();
+ rec.totalXPDelta=state.xp-snapshot.xp;rec.totalCoinDelta=state.coins-snapshot.coins;rec.snapshot=snapshot;
+ save();sound("task");burst("task");
+ const el=document.getElementById("task-"+id);if(el)el.classList.add("hide");
+ showUndo(id,rec);
+ setTimeout(()=>{if(rec.levelUps.length)levelPop(rec.levelUps);else render("today")},430);
+}
+function undoLast(){
+ const u=window.undoRecord;if(!u)return;
+ clearTimeout(window.undoTimer);const t=state.tasks.find(x=>x.id===u.id);
+ if(t){
+  const idx=state.history.indexOf(u.record);if(idx>=0)state.history.splice(idx,1);
+  delete state.completions[key()+"|"+u.id];
+  state.xp=Math.max(0,state.xp-(u.record.totalXPDelta||u.record.xp));
+  state.coins=Math.max(0,state.coins-(u.record.totalCoinDelta||u.record.coins+u.record.levelCoins));
+  Object.entries(u.record.beforeCat||{}).forEach(([c,x])=>state.cat[c]=x);
+  skillForTask(t).forEach(([k,n])=>{const sk=skillKey(k,n);state.skillXP[sk]=Math.max(0,(state.skillXP[sk]||0)-u.record.xp)});
+  state.total=Math.max(0,state.total-1);
+  if(u.record.snapshot){state.streak=u.record.snapshot.streak;state.bestStreak=u.record.snapshot.bestStreak;state.lastDay=u.record.snapshot.lastDay;state.questClaimed=u.record.snapshot.questClaimed;state.missionClaimed=u.record.snapshot.missionClaimed}
+  save();document.getElementById("undoToast").classList.remove("show");window.undoRecord=null;render("today");toast("Task undone");
+ }
+}
+function midnightWatcher(){
+ const current=key();
+ if(window.__lifeGameDay!==current){window.__lifeGameDay=current;render("today")}
+}
+window.__lifeGameDay=key();
+setInterval(midnightWatcher,15000);
+</script>
 render("today");
 </script></body></html>
