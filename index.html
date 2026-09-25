@@ -37,7 +37,8 @@ let state=JSON.parse(localStorage.getItem("lifegame_v07")||"null")||{xp:0,coins:
 state.tasks=(state.tasks||[]).map((t,i)=>({id:t.id||"m"+i,name:t.name||"Life task",diff:t.diff&&D[t.diff]?t.diff:"common",cats:Array.isArray(t.cats)&&t.cats.length?t.cats:["life"],days:Array.isArray(t.days)&&t.days.length?t.days:[0,1,2,3,4,5,6]}));
 state.completions=state.completions||{};
 state.history=Array.isArray(state.history)?state.history:[];
-state.cat=state.cat&&typeof state.cat==="object"?state.cat:{};\nstate.plans=Array.isArray(state.plans)?state.plans:[];
+state.cat=state.cat&&typeof state.cat==="object"?state.cat:{};
+state.plans=Array.isArray(state.plans)?state.plans:[];
 Object.keys(C).forEach(k=>state.cat[k]=Number(state.cat[k])||0);
 function save(){localStorage.setItem("lifegame_v07",JSON.stringify(state))}
 function key(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
