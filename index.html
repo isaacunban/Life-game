@@ -224,7 +224,14 @@ function openPlanBuilder(){
 function togglePlanTask(id,btn){btn.classList.toggle("selected-task");btn.textContent=btn.classList.contains("selected-task")?"✓":"+"}
 function savePlan(){let name=document.getElementById("planName").value.trim(),days=[...document.querySelectorAll("#planDays .day.on")].map(e=>+e.dataset.i),tasks=[...document.querySelectorAll(".plus-btn.selected-task")].map(e=>e.id.replace("pb-","")),repeat=document.getElementById("planRepeat").checked;if(!name||!days.length||!tasks.length)return toast("Choose a name, day and at least one task");state.plans.push({id:"p"+Date.now(),name,days,tasks,repeat});save();closeModal();render("schedule");toast("Plan saved 📅")}
 function deletePlan(id){state.plans=state.plans.filter(p=>p.id!==id);save();render("schedule");toast("Plan removed")}
-function category(k){let v=C[k],ts=state.tasks.filter(t=>t.cats.includes(k)),inf=info(state.cat[k]);document.getElementById("app").innerHTML='<div class="top"><button class="secondary" onclick="render(\'progress\')">← Progress</button><h1 style="margin-top:15px">'+v[0]+' '+v[1]+'</h1><div class="sub">Level '+inf.l+' · '+inf.cur+'/'+(inf.next-inf.base)+' XP · '+catDone(k)+' completed</div></div><div class="card"><div class="xpbar"><i style="width:'+Math.min(100,inf.cur/(inf.next-inf.base)*100)+'%"></i></div></div><div class="section"><h2>Tasks</h2></div><div class="card">'+ts.map(t=>taskHTML(t)).join("")+'</div>'+nav("progress")}
+function category(k){
+ let v=C[k],ts=state.tasks.filter(t=>t.cats.includes(k)),inf=info(state.cat[k]),subs=subskillsFor(k);
+ document.getElementById("app").innerHTML='<div class="top"><button class="secondary" onclick="render(\'progress\')">← Progress</button><h1 style="margin-top:15px">'+v[0]+' '+v[1]+'</h1><div class="sub">Level '+inf.l+' · '+inf.cur+'/'+(inf.next-inf.base)+' XP · '+catDone(k)+' completed</div></div>'+
+ '<div class="card"><div class="xpbar"><i style="width:'+Math.min(100,inf.cur/(inf.next-inf.base)*100)+'%"></i></div></div>'+
+ '<div class="section"><h2>🌳 Skill branches</h2><span class="pill">'+subs.length+' skills</span></div>'+
+ '<div class="skill-tree">'+subs.map(s=>{let xp=subskillXP(k,s[1]),ii=info(xp);return '<div class="skill-node '+(xp>0?"unlocked":"")+'"><div class="skill-icon">'+s[0]+'</div><div class="skill-info"><b>'+s[1]+'</b><span class="meta">Lv '+ii.l+' · '+ii.cur+'/'+(ii.next-ii.base)+' XP</span><div class="skill-bar"><i style="width:'+Math.min(100,ii.cur/(ii.next-ii.base)*100)+'%"></i></div></div></div>'}).join("")+'</div>'+
+ '<div class="section"><h2>Tasks</h2><span class="pill">'+ts.length+'</span></div><div class="card">'+ts.map(taskHTML).join("")+'</div>'+nav("progress");
+}
 function complete(id){
  let t=state.tasks.find(x=>x.id===id);if(!t||done(t))return;
  let r=diffInfo(t.diff),old={};t.cats.forEach(c=>old[c]=info(state.cat[c]).l);
