@@ -30,7 +30,11 @@ const ach=[
 ["✝️","Steadfast","Complete 50 Spiritual tasks",s=>catDone("spiritual")>=50]];
 const trophies=[["🏆","Iron","Reach category level 5"],["🥉","Bronze","Reach category level 15"],["🥈","Silver","Reach category level 30"],["🥇","Gold","Reach category level 50"],["💚","Emerald","Reach category level 75"],["💎","Diamond","Reach category level 100"]];
 let state=JSON.parse(localStorage.getItem("lifegame_v07")||"null")||{xp:0,coins:0,streak:0,bestStreak:0,lastDay:null,total:0,history:[],completions:{},tasks:seeds,cat:{},inventory:[],weeklyXP:0};
-Object.keys(C).forEach(k=>state.cat[k]=state.cat[k]||0);
+state.tasks=(state.tasks||[]).map((t,i)=>({id:t.id||"m"+i,name:t.name||"Life task",diff:t.diff&&D[t.diff]?t.diff:"common",cats:Array.isArray(t.cats)&&t.cats.length?t.cats:["life"],days:Array.isArray(t.days)&&t.days.length?t.days:[0,1,2,3,4,5,6]}));
+state.completions=state.completions||{};
+state.history=Array.isArray(state.history)?state.history:[];
+state.cat=state.cat&&typeof state.cat==="object"?state.cat:{};
+Object.keys(C).forEach(k=>state.cat[k]=Number(state.cat[k])||0);
 function save(){localStorage.setItem("lifegame_v07",JSON.stringify(state))}
 function key(){return new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
 function level(x){let l=0;while(x>=xpFor(l+1))l++;return l}
@@ -68,5 +72,5 @@ function closeModal(){document.getElementById("modal").classList.remove("show")}
 function addTask(){let n=document.getElementById("taskName").value.trim(),d=document.getElementById("taskDiff").value,cs=[...document.getElementById("taskCats").selectedOptions].map(o=>o.value).slice(0,3),ds=[...document.querySelectorAll(".day.on")].map(e=>+e.dataset.i);if(!n||!cs.length||!ds.length)return toast("Choose a task, category and day");state.tasks.push({id:"u"+Date.now(),name:n,diff:d,cats:cs,days:ds});save();closeModal();render("schedule");toast("Task added 📅")}
 function initModal(){document.getElementById("taskDiff").innerHTML=Object.entries(D).map(([k,v])=>'<option value="'+k+'">'+v[2]+' · '+v[0]+' XP</option>').join("");document.getElementById("taskCats").innerHTML=Object.entries(C).map(([k,v])=>'<option value="'+k+'">'+v[0]+' '+v[1]+'</option>').join("");document.getElementById("days").innerHTML=DAYS.map((d,i)=>'<button type="button" class="day '+(i===dayIndex?"on":"")+'" data-i="'+i+'" onclick="this.classList.toggle(\'on\')">'+d+'</button>').join("")}
 function toast(x){let e=document.getElementById("toast");e.textContent=x;e.style.display="block";setTimeout(()=>e.style.display="none",1500)}
-initModal();render();
+initModal();try{render();}catch(e){document.getElementById("app").innerHTML='<div class="top"><h1>Life Game 🎮</h1><div class="card"><h2>One little bug escaped 😅</h2><p class="sub">Refresh this page once. If it still happens, send me this screen and I’ll fix it.</p><button class="primary" onclick="location.reload()">Refresh</button></div></div>'}
 </script></body></html>
